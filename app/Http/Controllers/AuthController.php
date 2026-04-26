@@ -65,28 +65,29 @@ class AuthController extends Controller
 
     public function redirectToGoogle()
     {
+        // Esto envía al usuario a Google
         return Socialite::driver('google')->stateless()->redirect();
     }
 
-    /**
-     * Procesa la respuesta de Google
-     */
     public function handleGoogleCallback()
     {
         try {
-            // Ahora 'Socialite' y 'stateless' serán reconocidos
+            // Esto recibe los datos de Google
             $googleUser = Socialite::driver('google')->stateless()->user();
 
+            // Creamos el usuario en tu base de datos login_api_db
             $user = User::updateOrCreate([
                 'email' => $googleUser->email,
             ], [
                 'nombre' => $googleUser->name,
                 'google_id' => $googleUser->id,
-                'password' => Hash::make(Str::random(16)), // 'Str' ahora es válido
+                'telefono' => null,
+                'password' => Hash::make(Str::random(16)),
             ]);
 
             $token = $user->createToken('auth_token')->plainTextToken;
 
+            // Redirigimos al Dashboard de Next.js
             return redirect('http://localhost:3000/dashboard?token=' . $token);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
